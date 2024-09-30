@@ -49,22 +49,27 @@ Base.metadata.create_all(bind=engine)
 
 
 #CRUD
-#CRIAR
-@app.route('/usuario/add', methods=['POST'])
+#CREAT
+@app.route('/usuario/creat', methods=['POST'])
 def criar_usuario():
     dados_usuario = request.get_json()
-    consulta_usuario = session.query(Usuario).filter_by(login=dados_usuario.get('login')).first()
-    
+    consulta_usuario = session.query(Usuario).filter_by(login=dados_usuario.get('login')).first()  
     try:
         if consulta_usuario.login == dados_usuario.get('login'):
             return jsonify('usuario ja existe')
-
     except:
         usuario = Usuario(nome=dados_usuario.get('nome'), login=dados_usuario.get('login'), password=dados_usuario.get('password'))
         session.add(usuario)
         session.commit()
         return jsonify(dados_usuario)
-    
+
+
+#READ
+@app.route('/usuario/read/all', methods=['GET'])
+def pegar_usuarios():
+    usuarios = session.query(Usuario).all()
+    return usuarios
+        
 
 app.run(port=3000, host='localhost', debug=True)
 

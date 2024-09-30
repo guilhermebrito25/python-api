@@ -69,10 +69,10 @@ def criar_usuario():
 @app.route('/usuario/read/all', methods=['GET'])
 def pegar_usuarios():
     usuarios = session.query(Usuario)
-    
+    usuariosF = []
     for user in usuarios:
-        print(user.nome)
-    return "usuarios"
+        usuariosF.append(user.nome)
+    return jsonify(usuariosF)
         
 
 app.run(port=3000, host='localhost', debug=True)

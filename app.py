@@ -51,6 +51,7 @@ Base.metadata.create_all(bind=engine)
 
 #CRUD
 #CREAT
+#CRIA UM UNICO USUARIO
 @app.route('/usuario/creat', methods=['POST'])
 def criar_usuario():
     dados_usuario = request.get_json()
@@ -69,10 +70,11 @@ def criar_usuario():
 @app.route('/usuario/read/all', methods=['GET'])
 def pegar_usuarios():
     usuarios = session.query(Usuario)
-    usuariosF = []
+    usuariosL = []
     for user in usuarios:
-        usuariosF.append(user.nome)
-    return jsonify(usuariosF)
+        usuariosD = { 'id': user.id, 'nome': user.nome}
+        usuariosL.append(usuariosD)
+    return jsonify(usuariosL)
         
 
 app.run(port=3000, host='localhost', debug=True)

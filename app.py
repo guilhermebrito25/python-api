@@ -1,6 +1,7 @@
 
-from flask import Flask, jsonify, request
-from sqlalchemy import create_engine, Column, String, Integer
+from time import sleep
+from flask import Flask, jsonify
+from sqlalchemy import create_engine, Column, String, Integer, select
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 #cria o router do flask
@@ -67,24 +68,11 @@ def criar_usuario():
 #READ
 @app.route('/usuario/read/all', methods=['GET'])
 def pegar_usuarios():
-    usuarios = session.query(Usuario).all()
-    return usuarios
+    usuarios = session.query(Usuario)
+    
+    for user in usuarios:
+        print(user.nome)
+    return "usuarios"
         
 
 app.run(port=3000, host='localhost', debug=True)
-
-     
-# #ADICIONA UM NOVO USUARIO
-# @app.route('/user/new', methods=['POST'])
-# def addUser ():
-#     user = request.get_json()
-    
-#     nameAdd = user.get('name')
-#     loginAdd = user.get('login')
-#     passwordAdd = user.get('password')
-#     userAdd = Usuario(name=nameAdd,login=loginAdd,password=passwordAdd)
-   
-#     return (f'Usuario adicionado')
-        
-
-

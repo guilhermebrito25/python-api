@@ -50,8 +50,14 @@ class Livro(Base):
     
 Base.metadata.create_all(bind=engine)
 
+def msg(msg):
+    print('-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-')
+    print(msg)
+    print('-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-')
+
 
 #CRUD
+#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 #CREAT
 #CRIA UM UNICO USUARIO
 @app.route('/usuario/creat', methods=['POST'])
@@ -69,6 +75,7 @@ def criar_usuario():
 
 
 #READ
+#ENRTREGA A LISTA DE USUARIOS COMPLETA COM NOME E LOGIN DO USUARIO 
 @app.route('/usuario/read/all', methods=['GET'])
 def pegar_usuarios():
     usuarios = session.query(Usuario)
@@ -77,6 +84,32 @@ def pegar_usuarios():
         usuariosD = { 'id': user.id, 'nome': user.nome}
         usuariosL.append(usuariosD)
     return jsonify(usuariosL)
+
+
+#ENTREGA UM USUARIO ESPECIFICO - Apartir do ID
+@app.route('/usuario/read/<int:ide>', methods=['GET'])
+def pegar_usuario(ide):
+    try: 
+        usuario = session.query(Usuario).filter_by(id=ide).first()
+        return jsonify(usuario.nome)
+    except:
+        return jsonify('USUARIO NAO EXISTE')
+    
+#login
+@app.route('/login', methods=['POST'])
+def login():
+    dadosLogin = request.get_json()
+    try:
+        usuarioLogin = session.query(Usuario).filter_by(login = dadosLogin.get('login')).first()
+        usuarioPassword = session.query(Usuario).filter_by(password = dadosLogin.get('password')).first()
         
+        if dadosLogin.get('login') == usuarioLogin.login and dadosLogin.get('password') == usuarioPassword.password:
+            return jsonify('User open')
+    except:
+        return jsonify('User not find')
+
+
+
+
 
 app.run(port=3000, host='localhost', debug=True)

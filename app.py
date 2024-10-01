@@ -1,6 +1,20 @@
+#imports FLask
 from flask import Flask, jsonify, request
+
+#imports SQLalchemy
 from sqlalchemy import create_engine, Column, String, Integer, select
 from sqlalchemy.orm import sessionmaker, declarative_base
+
+#imports JWT Token
+import jwt
+from datetime import datetime, timedelta
+
+#imports PWD lib de hash senhas
+from pwdlib import PasswordHash
+
+
+#Cria função recomendada hash senhas
+password_hash = PasswordHash.recommended()
 
 
 #cria o router do flask
@@ -10,11 +24,9 @@ app = Flask(__name__)
 #conecta o alchemy no BD
 engine = create_engine("mysql+mysqldb://root:1234@localhost:3306/crm3", echo=True)
 
-
 #inicia seção, onde será usado os metodos CRUD
 Session = sessionmaker(bind=engine)
 session = Session()
-
 
 #inicia a "schame" e criação da estrura do BD com as tabelas(usuarios e livros)
 Base = declarative_base()
@@ -27,7 +39,7 @@ class Usuario(Base):
     id = Column("id", Integer, primary_key=True, autoincrement=True)
     nome = Column("nome", String(50))
     login = Column("login", String(20))
-    password = Column("password", String(20))
+    password = Column("password", String(150))
     
     def __init__(self, nome, login, password):
         self.nome = nome
@@ -68,7 +80,7 @@ def criar_usuario():
         if consulta_usuario.login == dados_usuario.get('login'):
             return jsonify('usuario ja existe')
     except:
-        usuario = Usuario(nome=dados_usuario.get('nome'), login=dados_usuario.get('login'), password=dados_usuario.get('password'))
+        usuario = Usuario(nome = dados_usuario.get('nome'), login = dados_usuario.get('login'), password = password_hash.hash(dados_usuario.get('password')))
         session.add(usuario)
         session.commit()
         return jsonify(dados_usuario)
@@ -99,17 +111,14 @@ def pegar_usuario(ide):
 @app.route('/login', methods=['POST'])
 def login():
     dadosLogin = request.get_json()
+     
     try:
         usuarioLogin = session.query(Usuario).filter_by(login = dadosLogin.get('login')).first()
-        usuarioPassword = session.query(Usuario).filter_by(password = dadosLogin.get('password')).first()
-        
-        if dadosLogin.get('login') == usuarioLogin.login and dadosLogin.get('password') == usuarioPassword.password:
+        if dadosLogin.get('login') == usuarioLogin.login and password_hash.verify(dadosLogin.get('password'),  usuarioLogin.password):
             return jsonify('User open')
+        else:
+            return jsonify('User hfhf find')
     except:
         return jsonify('User not find')
-
-
-
-
 
 app.run(port=3000, host='localhost', debug=True)

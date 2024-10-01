@@ -1,14 +1,15 @@
-
-from time import sleep
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from sqlalchemy import create_engine, Column, String, Integer, select
 from sqlalchemy.orm import sessionmaker, declarative_base
+
 
 #cria o router do flask
 app = Flask(__name__)
 
+
 #conecta o alchemy no BD
 engine = create_engine("mysql+mysqldb://root:1234@localhost:3306/crm3", echo=True)
+
 
 #inicia seção, onde será usado os metodos CRUD
 Session = sessionmaker(bind=engine)
@@ -17,6 +18,7 @@ session = Session()
 
 #inicia a "schame" e criação da estrura do BD com as tabelas(usuarios e livros)
 Base = declarative_base()
+
 
 #usuarios
 class Usuario(Base):

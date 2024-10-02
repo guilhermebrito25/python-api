@@ -7,15 +7,47 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 
 #imports JWT Token
 import jwt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 #imports PWD lib de hash senhas
 from pwdlib import PasswordHash
 
+# imports para carregar chaves RSA
+import os
 
 #Cria função recomendada hash senhas
 password_hash = PasswordHash.recommended()
 
+
+# Carregar as chaves RSA (privada para assinar e pública para verificar)
+with open("private.pem", "r") as f:
+    PRIVATE_KEY = f.read()
+
+with open("public.pem", "r") as f:
+    PUBLIC_KEY = f.read()
+
+# Configurações de JWT
+JWT_ALGORITHM = 'RS256'
+JWT_EXPIRATION_DELTA = timedelta(minutes=10)
+
+# Função para criar o token JWT
+def create_jwt_token(user_id):
+    expiration = datetime.now(timezone.utc) + JWT_EXPIRATION_DELTA
+    payload = {
+        'user_id': user_id,
+        'exp': expiration,
+        'iat': datetime.now(timezone.utc)
+    }
+    return jwt.encode(payload, PRIVATE_KEY, algorithm=JWT_ALGORITHM)
+
+def verify_jwt_token(token):
+    try:
+        payload = jwt.decode(token, PUBLIC_KEY, algorithms=[JWT_ALGORITHM])
+        return payload['user_id']
+    except jwt.ExpiredSignatureError:
+        return 'expirado'  # Token expirou
+    except jwt.InvalidTokenError:
+        return 'invalido'  # Token inválido
 
 #cria o router do flask
 app = Flask(__name__)
@@ -96,6 +128,7 @@ def pegar_usuarios():
         usuariosD = { 'id': user.id, 'nome': user.nome}
         usuariosL.append(usuariosD)
     return jsonify(usuariosL)
+    
 
 
 #ENTREGA UM USUARIO ESPECIFICO - Apartir do ID
@@ -115,7 +148,8 @@ def login():
     try:
         usuarioLogin = session.query(Usuario).filter_by(login = dadosLogin.get('login')).first()
         if dadosLogin.get('login') == usuarioLogin.login and password_hash.verify(dadosLogin.get('password'),  usuarioLogin.password):
-            return jsonify('User open')
+            create_jwt_token(usuarioLogin.id)
+            return jsonify({'token': create_jwt_token(usuarioLogin.id)})
         else:
             return jsonify('User hfhf find')
     except:

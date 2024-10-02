@@ -130,7 +130,6 @@ def pegar_usuarios():
     return jsonify(usuariosL)
     
 
-
 #ENTREGA UM USUARIO ESPECIFICO - Apartir do ID
 @app.route('/usuario/read/<int:ide>', methods=['GET'])
 def pegar_usuario(ide):
